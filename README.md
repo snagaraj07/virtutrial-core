@@ -81,8 +81,17 @@ The default forecaster is a standardized ridge regression with one output per we
 ## Tests
 
 ```bash
+ruff check .
 pytest
 ```
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. The conduct rules are in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Report vulnerabilities through the private advisory path in [SECURITY.md](SECURITY.md).
+
+## Real study tables
+
+This repository holds the statistical library and synthetic fixtures. A deployment that analyzes someone else's trial tables is specified in [agent-plan/00-system-design.md](agent-plan/00-system-design.md). Study files, credentials, and patient-level outputs stay outside git. Build agents follow [agent-plan/README.md](agent-plan/README.md) one phase at a time.
 
 ## License
 

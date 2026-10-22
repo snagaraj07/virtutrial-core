@@ -25,7 +25,7 @@ setup(
         "scipy>=1.11",
     ],
     extras_require={
-        "dev": ["pytest>=7.0"],
+        "dev": ["pytest>=7.0", "ruff>=0.6"],
     },
     classifiers=[
         "Development Status :: 3 - Alpha",

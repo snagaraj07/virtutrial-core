@@ -1,0 +1,37 @@
+name: Bug
+description: A wrong result, a crash, or a broken install in the open-source library
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: Describe the behavior and what you expected instead.
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.12.0"
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command or code you ran
+    validations:
+      required: true
+  - type: input
+    id: seed
+    attributes:
+      label: Random seed, if the run uses one
+      placeholder: "7"
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: This report contains no study tables, patient-level output, credentials, or secrets.
+          required: true

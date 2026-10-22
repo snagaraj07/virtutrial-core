@@ -1,0 +1,10 @@
+target-version = "py39"
+line-length = 100
+extend-exclude = [".venv", "build", "dist"]
+
+[lint]
+select = ["E", "F", "W", "I"]
+
+[lint.per-file-ignores]
+# The demo adds src/ to the path before importing the library modules.
+"examples/autism_trial_demo.py" = ["E402"]

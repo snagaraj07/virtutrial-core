@@ -14,3 +14,15 @@ htmlcov/
 
 # Local planning document. It is not part of the public library.
 VirtuTrial_TEDx_Talk_and_Open_Source_Execution_Plan.docx
+
+# Study tables, uploads, and local workbench state stay out of git.
+/data/
+/studies/
+/uploads/
+/.local-data/
+
+# Deployment state and secrets.
+*.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
