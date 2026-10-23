@@ -2,7 +2,7 @@
 
 ```yaml
 id: "07"
-status: blocked
+status: complete
 depends_on: ["06"]
 ```
 

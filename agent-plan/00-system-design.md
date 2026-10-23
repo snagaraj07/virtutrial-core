@@ -35,7 +35,8 @@ The statistical core already exists:
 | --- | --- |
 | `src/simulator.py` | Synthetic longitudinal tables. Columns are the contract. |
 | `src/forecaster.py` | Twin trained on untreated patients from week-0 features. |
-| `src/vca_engine.py` | Unadjusted difference, ANCOVA, and calibrated twin contrast. |
+| `src/vca_engine.py` | Unadjusted difference, baseline-score ANCOVA, twin ANCOVA, and calibrated twin contrast. |
+| `src/diagnostics.py` | Baseline comparison across cohorts, twin error on concurrent controls, run manifest with file hashes. |
 
 Week-0 features are `age`, `baseline_score`, `gaze_fixation`, and `vocal_variability`. The endpoint is `engagement_score` at the final week. Higher is better. The primary estimand is the treatment coefficient in:
 

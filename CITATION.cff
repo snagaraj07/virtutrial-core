@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: VirtuTrial Core
+message: If you use this software, please cite it using these metadata.
+type: software
+authors:
+  - family-names: Nagaraj
+    given-names: Subramani
+    alias: snagaraj07
+repository-code: https://github.com/snagaraj07/virtutrial-core
+url: https://github.com/snagaraj07/virtutrial-core
+license: MIT
+version: 0.1.0
+date-released: "2026-10-22"
+abstract: >
+  Open-source Python library for synthetic control arms and digital-twin
+  forecasts in clinical-trial method research. The included endpoint is a
+  synthetic engagement score. Diagnosis and treatment decisions stay with
+  a validated study protocol.

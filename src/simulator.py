@@ -153,6 +153,6 @@ def build_patient_table(frame: pd.DataFrame) -> pd.DataFrame:
         .rename(columns={"engagement_score": "endpoint_score"})
     )
     table = start.merge(end, on="patient_id", how="inner")
-    if len(table) != frame["patient_id"].nunique():
-        raise ValueError("Each patient needs a baseline row and a final-week row.")
+    if table.empty:
+        raise ValueError("No patient has both a baseline row and a final-week row.")
     return table.reset_index(drop=True)

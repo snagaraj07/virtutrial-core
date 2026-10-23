@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block main %}
+  <h1>File was not accepted</h1>
+  <div class="notice notice-stop" role="alert">
+    <p>{{ detail }}</p>
+    <p>Rule: <span class="rule">{{ rule_id }}</span></p>
+  </div>
+  <p>The upload was discarded. Cell values from the file are not shown on this page.</p>
+  <p><a class="button" href="/runs/new">Try another file</a></p>
+{% endblock %}

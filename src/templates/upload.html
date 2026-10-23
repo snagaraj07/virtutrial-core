@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block main %}
+  <h1>Start a run</h1>
+  <p class="lede">Choose two tables. Each file must be CSV or parquet, with a week-0 row for every patient, and 50 MB or smaller.</p>
+  <form method="post" action="/runs" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="field">
+      <label for="history">Historical controls</label>
+      <p id="history-help" class="help">Untreated patients used to train the twin. At least 10 people.</p>
+      <input id="history" name="history" type="file" accept=".csv,.parquet,text/csv" required aria-describedby="history-help">
+    </div>
+    <div class="field">
+      <label for="trial">Trial table</label>
+      <p id="trial-help" class="help">Treated patients and concurrent controls from the same column layout.</p>
+      <input id="trial" name="trial" type="file" accept=".csv,.parquet,text/csv" required aria-describedby="trial-help">
+    </div>
+    <button type="submit">Check files</button>
+  </form>
+{% endblock %}

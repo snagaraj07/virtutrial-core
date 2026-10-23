@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block main %}
+  <h1>Columns match the contract</h1>
+  <p class="lede">The required names are present. Sample cell values stay in the file and are not listed here.</p>
+  <table>
+    <caption>Required columns found in both files</caption>
+    <thead>
+      <tr>
+        <th scope="col">Column</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for column in columns %}
+      <tr>
+        <th scope="row">{{ column }}</th>
+        <td>Matched</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form method="post" action="/runs/{{ run_id }}/execute">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit">Run analysis</button>
+  </form>
+{% endblock %}

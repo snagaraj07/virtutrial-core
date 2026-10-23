@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block main %}
+  <h1>Audit log</h1>
+  <p class="help">Each line is appended and never changed. This page does not show file contents.</p>
+  <table>
+    <caption>Access, run, export, and delete events</caption>
+    <thead>
+      <tr>
+        <th scope="col">Time (UTC)</th>
+        <th scope="col">Actor</th>
+        <th scope="col">Action</th>
+        <th scope="col">Run</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events %}
+      <tr>
+        <td>{{ event.ts }}</td>
+        <td>{{ event.actor }}</td>
+        <td>{{ event.action }}</td>
+        <td class="mono">{{ event.run_id }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4">No events yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

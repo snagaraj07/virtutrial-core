@@ -2,7 +2,7 @@
   "project": "virtutrial-core",
   "design": "agent-plan/00-system-design.md",
   "invariants": "agent-plan/01-security-invariants.md",
-  "current_phase": "02",
+  "current_phase": "08",
   "phases": [
     {
       "id": "01",
@@ -14,49 +14,49 @@
     {
       "id": "02",
       "title": "Data contract and loader",
-      "status": "ready",
+      "status": "complete",
       "doc": "agent-plan/phase-02-data-contract.md",
       "depends_on": ["01"]
     },
     {
       "id": "03",
       "title": "Reproducible package",
-      "status": "blocked",
+      "status": "complete",
       "doc": "agent-plan/phase-03-reproducible-package.md",
       "depends_on": ["02"]
     },
     {
       "id": "04",
       "title": "Analysis runner",
-      "status": "blocked",
+      "status": "complete",
       "doc": "agent-plan/phase-04-analysis-runner.md",
       "depends_on": ["02"]
     },
     {
       "id": "05",
       "title": "Privacy gate",
-      "status": "blocked",
+      "status": "complete",
       "doc": "agent-plan/phase-05-privacy-gate.md",
       "depends_on": ["02"]
     },
     {
       "id": "06",
       "title": "Local workbench",
-      "status": "blocked",
+      "status": "complete",
       "doc": "agent-plan/phase-06-local-workbench.md",
       "depends_on": ["04", "05"]
     },
     {
       "id": "07",
       "title": "Study service and audit",
-      "status": "blocked",
+      "status": "complete",
       "doc": "agent-plan/phase-07-study-service.md",
       "depends_on": ["06"]
     },
     {
       "id": "08",
       "title": "Hosted infrastructure",
-      "status": "blocked",
+      "status": "ready",
       "doc": "agent-plan/phase-08-hosted-infrastructure.md",
       "depends_on": ["07"]
     },

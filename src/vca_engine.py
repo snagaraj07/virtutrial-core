@@ -40,6 +40,14 @@ class VCAResult:
     outcome_sd: float
     residual_sd: float
     variance_reduction: float
+    baseline_effect: float = float("nan")
+    baseline_se: float = float("nan")
+    baseline_p: float = float("nan")
+    bootstrap_se: float = float("nan")
+    bootstrap_ci_low: float = float("nan")
+    bootstrap_ci_high: float = float("nan")
+    n_boot: int = 0
+    n_boot_ok: int = 0
 
     def summary(self) -> str:
         return "\n".join(
@@ -49,6 +57,10 @@ class VCAResult:
                 (
                     f"Unadjusted difference: {self.unadjusted_effect:.2f} "
                     f"(SE {self.unadjusted_se:.2f}, p {self.unadjusted_p:.3f})"
+                ),
+                (
+                    f"Baseline-score ANCOVA: {self.baseline_effect:.2f} "
+                    f"(SE {self.baseline_se:.2f}, p {self.baseline_p:.3f})"
                 ),
                 (
                     f"Virtual control arm (ANCOVA): {self.ancova_effect:.2f} "
@@ -61,6 +73,12 @@ class VCAResult:
                 f"Outcome SD: {self.outcome_sd:.2f}",
                 f"ANCOVA residual SD: {self.residual_sd:.2f}",
                 f"Variance reduction: {self.variance_reduction:.1%}",
+                (
+                    f"Bootstrap SE (includes twin fit): {self.bootstrap_se:.2f} "
+                    f"[{self.bootstrap_ci_low:.2f}, {self.bootstrap_ci_high:.2f}]"
+                    if self.n_boot_ok
+                    else "Bootstrap SE: not computed"
+                ),
             ]
         )
 
@@ -128,6 +146,9 @@ class VirtualControlArm:
         if merged["counterfactual"].isna().any():
             missing = int(merged["counterfactual"].isna().sum())
             raise ValueError(f"Missing counterfactual predictions for {missing} patients.")
+        merged = merged.merge(_baseline_scores(trial), on="patient_id", how="left")
+        if merged["baseline_score"].isna().any():
+            raise ValueError("Every patient needs a baseline_score at the first week.")
 
         treated_mask = merged["treated"].to_numpy(dtype=bool)
         n_treatment = int(treated_mask.sum())
@@ -142,7 +163,14 @@ class VirtualControlArm:
                 "Counterfactual scores have no variation, so ANCOVA cannot adjust for them."
             )
 
+        baseline_score = merged["baseline_score"].to_numpy(dtype=float)
+        if float(np.std(baseline_score)) < 1e-8:
+            raise ValueError(
+                "Baseline scores have no variation, so ANCOVA cannot adjust for them."
+            )
+
         unadjusted = _welch(outcome[treated_mask], outcome[~treated_mask])
+        baseline = _ancova(outcome, treated_mask.astype(float), baseline_score)
         ancova = _ancova(outcome, treated_mask.astype(float), prognostic)
         contrast = _calibrated_contrast(
             outcome[treated_mask],
@@ -171,6 +199,9 @@ class VirtualControlArm:
             outcome_sd=outcome_sd,
             residual_sd=ancova.residual_sd,
             variance_reduction=float(variance_reduction),
+            baseline_effect=baseline.estimate,
+            baseline_se=baseline.std_error,
+            baseline_p=baseline.p_value,
         )
 
 
@@ -259,6 +290,19 @@ class _Estimate:
     residual_sd: float = 0.0
 
 
+def _baseline_scores(trial: pd.DataFrame) -> pd.DataFrame:
+    """One baseline_score per patient, taken from the first week in the table."""
+
+    if "baseline_score" not in trial.columns:
+        raise ValueError("Missing columns: baseline_score")
+    first_week = int(trial["week"].min())
+    return (
+        trial.loc[trial["week"] == first_week, ["patient_id", "baseline_score"]]
+        .drop_duplicates("patient_id")
+        .reset_index(drop=True)
+    )
+
+
 def _validated_predictions(counterfactuals: pd.DataFrame) -> pd.DataFrame:
     required = ("patient_id", "counterfactual")
     missing = [column for column in required if column not in counterfactuals.columns]
@@ -329,3 +373,64 @@ def _calibrated_contrast(
 
 def _power(p_values: list[float], alpha: float) -> float:
     return float(np.mean(np.asarray(p_values) < alpha))
+
+
+def bootstrap_ancova(
+    history: pd.DataFrame,
+    trial: pd.DataFrame,
+    n_boot: int = 50,
+    seed: int = 0,
+    tune: bool = True,
+) -> dict:
+    """Patient-level bootstrap of the two-stage twin plus ANCOVA procedure.
+
+    Each replicate redraws historical patients and trial patients with
+    replacement, refits the twin, and re-estimates the treatment coefficient.
+    The analytic ANCOVA standard error treats the forecast as known; this
+    interval includes that extra fitting step.
+    """
+
+    if n_boot < 1:
+        raise ValueError("n_boot must be at least 1.")
+
+    rng = np.random.default_rng(seed)
+    history_ids = history["patient_id"].drop_duplicates().to_numpy()
+    trial_ids = trial["patient_id"].drop_duplicates().to_numpy()
+    effects: list[float] = []
+
+    for _ in range(n_boot):
+        hist_draw = history_ids[rng.integers(0, len(history_ids), size=len(history_ids))]
+        trial_draw = trial_ids[rng.integers(0, len(trial_ids), size=len(trial_ids))]
+        hist_boot = _stack_patients(history, hist_draw)
+        trial_boot = _stack_patients(trial, trial_draw)
+        try:
+            predicted = (
+                DigitalTwinForecaster(tune=tune).fit(hist_boot).predict_counterfactual(trial_boot)
+            )
+            result = VirtualControlArm().compare(trial_boot, predicted)
+        except ValueError:
+            continue
+        effects.append(float(result.ancova_effect))
+
+    if len(effects) < 2:
+        raise ValueError("The bootstrap could not complete enough valid replicates.")
+
+    values = np.asarray(effects, dtype=float)
+    return {
+        "n_boot": int(n_boot),
+        "n_boot_ok": int(len(values)),
+        "bootstrap_se": float(values.std(ddof=1)),
+        "bootstrap_ci_low": float(np.quantile(values, 0.025)),
+        "bootstrap_ci_high": float(np.quantile(values, 0.975)),
+    }
+
+
+def _stack_patients(frame: pd.DataFrame, patient_ids: np.ndarray) -> pd.DataFrame:
+    """Rebuild a table from a patient-id draw, using unique ids within the draw."""
+
+    pieces = []
+    for index, patient_id in enumerate(patient_ids):
+        block = frame.loc[frame["patient_id"] == patient_id].copy()
+        block["patient_id"] = f"B{index:05d}"
+        pieces.append(block)
+    return pd.concat(pieces, ignore_index=True)

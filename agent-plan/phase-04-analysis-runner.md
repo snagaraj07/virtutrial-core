@@ -2,7 +2,7 @@
 
 ```yaml
 id: "04"
-status: blocked
+status: complete
 depends_on: ["02"]
 ```
 
@@ -45,7 +45,7 @@ S1 and S5. `report.json` contains aggregate numbers only. `counterfactuals.csv` 
 `report.json` keys, all required:
 
 ```text
-schema_version          integer 1
+schema_version          integer 2
 library_version         string from src/__init__.py
 n_history_controls      integer
 n_treatment             integer
@@ -54,6 +54,9 @@ planted_effect          null for external files
 unadjusted_effect       number
 unadjusted_se           number
 unadjusted_p            number
+baseline_ancova_effect  number, ANCOVA on week-0 baseline_score alone
+baseline_ancova_se      number
+baseline_ancova_p       number
 ancova_effect           number
 ancova_se               number
 ancova_p                number
@@ -64,7 +67,13 @@ outcome_sd              number
 residual_sd             number
 variance_reduction      number
 mean_engagement         list of {arm, week, mean}
+baseline_comparison     list, one row per twin feature: group n, mean, sd, and smd
+twin_check              {n_controls, rmse, mean_error, observed_sd, correlation}
+manifest                created_at, file sha256 and bytes, features, estimator,
+                        ridge_alpha, random_seed, weeks_fit, software versions
 ```
+
+Schema version 2 added the last four groups. They come from `src/diagnostics.py` and are aggregates only.
 
 `report.json` must not contain `patient_id` or per-patient scores.
 

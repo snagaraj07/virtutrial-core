@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{{ page_title }}</title>
+  <link rel="stylesheet" href="/assets/workbench.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <p class="brand">VirtuTrial</p>
+    <nav aria-label="Primary">
+      <a href="/" {% if nav == "home" %}aria-current="page"{% endif %}>Home</a>
+      {% if not actor or actor.role in ["analyst", "admin"] %}
+      <a href="/runs/new" {% if nav == "new" %}aria-current="page"{% endif %}>New run</a>
+      {% endif %}
+      {% if actor and actor.role in ["admin", "auditor"] %}
+      <a href="/audit" {% if nav == "audit" %}aria-current="page"{% endif %}>Audit</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main id="main" tabindex="-1">
+    {% block main %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <p>Research estimate for method review. Diagnosis and treatment decisions stay with the study protocol.</p>
+  </footer>
+</body>
+</html>

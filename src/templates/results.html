@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block main %}
+  <h1>Virtual control arm estimate</h1>
+  <p class="notice" role="note">Research estimate for method review. Diagnosis and treatment decisions stay with the study protocol.</p>
+  <dl class="metrics">
+    <div>
+      <dt>ANCOVA effect (points)</dt>
+      <dd>{{ report.ancova_effect | effect }}</dd>
+    </div>
+    <div>
+      <dt>Standard error</dt>
+      <dd>{{ report.ancova_se | effect }}</dd>
+    </div>
+    <div>
+      <dt>Two-sided p value</dt>
+      <dd>{{ report.ancova_p | pvalue }}</dd>
+    </div>
+    {% if "bootstrap_se" in report %}
+    <div>
+      <dt>Bootstrap SE (includes twin fit)</dt>
+      <dd>{{ report.bootstrap_se | effect }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+  <h2>Comparisons</h2>
+  <table>
+    <caption>Final-week treatment estimates</caption>
+    <thead>
+      <tr>
+        <th scope="col">Comparison</th>
+        <th scope="col">Effect (points)</th>
+        <th scope="col">Standard error</th>
+        <th scope="col">p value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Unadjusted difference</th>
+        <td>{{ report.unadjusted_effect | effect }}</td>
+        <td>{{ report.unadjusted_se | effect }}</td>
+        <td>{{ report.unadjusted_p | pvalue }}</td>
+      </tr>
+      {% if "baseline_ancova_effect" in report %}
+      <tr>
+        <th scope="row">Baseline-score ANCOVA</th>
+        <td>{{ report.baseline_ancova_effect | effect }}</td>
+        <td>{{ report.baseline_ancova_se | effect }}</td>
+        <td>{{ report.baseline_ancova_p | pvalue }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <th scope="row">Virtual control arm (ANCOVA)</th>
+        <td>{{ report.ancova_effect | effect }}</td>
+        <td>{{ report.ancova_se | effect }}</td>
+        <td>{{ report.ancova_p | pvalue }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Calibrated twin contrast</th>
+        <td>{{ report.counterfactual_effect | effect }}</td>
+        <td>{{ report.counterfactual_se | effect }}</td>
+        <td>{{ report.counterfactual_p | pvalue }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="help">The baseline-score row adjusts for the week-0 score alone. If the virtual control arm's standard error is not smaller than that row, the twin's extra measurements are not adding precision in this trial. The analytic ANCOVA standard error treats the twin forecast as known. The bootstrap SE refits the twin on resampled patients.</p>
+  {% if follow %}
+  <h2>Follow-up</h2>
+  <p class="help">{{ follow.endpoint.label }}. {{ follow.endpoint.direction | replace("_", " ") }}. Week is the scheduled visit number. A missing row is a missed visit. A patient without week {{ follow.final_week }} is a dropout. The estimate uses completers only.</p>
+  <dl class="metrics">
+    <div>
+      <dt>Completers</dt>
+      <dd>{{ follow.n_completers }} of {{ follow.n_randomized }}</dd>
+    </div>
+    <div>
+      <dt>Dropouts</dt>
+      <dd>{{ follow.n_dropouts }}</dd>
+    </div>
+    <div>
+      <dt>Missed visits</dt>
+      <dd>{{ follow.n_missed_visits }}</dd>
+    </div>
+    <div>
+      <dt>Analysis set</dt>
+      <dd>{{ follow.analysis_set }}</dd>
+    </div>
+  </dl>
+  {% endif %}
+  {% if twin %}
+  <h2>Twin check on concurrent controls</h2>
+  <p class="help">Concurrent controls are untreated, so their observed final-week score is what the twin claims to forecast. Error is observed minus predicted.</p>
+  <dl class="metrics">
+    <div>
+      <dt>Controls checked</dt>
+      <dd>{{ twin.n_controls }}</dd>
+    </div>
+    <div>
+      <dt>Forecast RMSE (points)</dt>
+      <dd>{{ twin.rmse | effect }}</dd>
+    </div>
+    <div>
+      <dt>Mean error (points)</dt>
+      <dd>{{ twin.mean_error | effect }}</dd>
+    </div>
+    <div>
+      <dt>Observed SD (points)</dt>
+      <dd>{{ twin.observed_sd | effect }}</dd>
+    </div>
+    <div>
+      <dt>Correlation</dt>
+      <dd>{{ twin.correlation | effect if twin.correlation is not none else "—" }}</dd>
+    </div>
+  </dl>
+  {% endif %}
+  {% if baseline %}
+  <h2>Baseline characteristics</h2>
+  <table>
+    <caption>Week-0 mean (SD) of each twin input. The standardized difference compares concurrent controls with the historical controls the twin was trained on.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Feature</th>
+        <th scope="col">Historical controls</th>
+        <th scope="col">Concurrent controls</th>
+        <th scope="col">Treatment</th>
+        <th scope="col">Standardized difference</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in baseline %}
+      <tr>
+        <th scope="row">{{ row.feature }}</th>
+        <td>{{ row.history_mean | effect }} ({{ row.history_sd | effect }})</td>
+        <td>{{ row.control_mean | effect }} ({{ row.control_sd | effect }})</td>
+        <td>{{ row.treatment_mean | effect }} ({{ row.treatment_sd | effect }})</td>
+        <td>{{ row.smd | effect }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="help">Group sizes: {{ baseline[0].history_n }} historical controls, {{ baseline[0].control_n }} concurrent controls, {{ baseline[0].treatment_n }} treated. A standardized difference beyond about 0.1 in absolute value is usually worth a reviewer's comment.</p>
+  {% endif %}
+  <h2>Mean engagement by week</h2>
+  <table>
+    <caption>Mean engagement score in points. Higher is better. Weeks are visits in the trial file.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Week</th>
+        <th scope="col">Treatment mean</th>
+        <th scope="col">Control mean</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in weeks %}
+      <tr>
+        <th scope="row">{{ row.week }}</th>
+        <td>{{ row.treatment }}</td>
+        <td>{{ row.control }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if manifest %}
+  <h2>Run record</h2>
+  <table>
+    <caption>What ran, on which files. Compare the hashes with the files you uploaded.</caption>
+    <tbody>
+      <tr>
+        <th scope="row">Created (UTC)</th>
+        <td>{{ manifest.created_at }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Library version</th>
+        <td>{{ report.library_version }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Historical file SHA-256</th>
+        <td class="mono">{{ manifest.history_file.sha256 }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Trial file SHA-256</th>
+        <td class="mono">{{ manifest.trial_file.sha256 }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Twin inputs</th>
+        <td>{{ manifest.features | join(", ") }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Twin model</th>
+        <td>{{ manifest.estimator }}, alpha {{ manifest.ridge_alpha }}{% if manifest.ridge_tuned %} (chosen by cross-validation){% endif %}, trained on {{ manifest.n_training_controls }} untreated patients over weeks {{ manifest.weeks_fit | join(", ") }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Random seed</th>
+        <td>{{ manifest.random_seed if manifest.random_seed is not none else "none; the ridge fit is deterministic" }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Software</th>
+        <td>Python {{ manifest.software.python }}, numpy {{ manifest.software.numpy }}, pandas {{ manifest.software.pandas }}, scikit-learn {{ manifest.software.scikit_learn }}, scipy {{ manifest.software.scipy }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% endif %}
+  <p class="actions">
+    <a class="button" href="/runs/{{ run_id }}/report">Download aggregate report</a>
+    {% if can_download_predictions is not defined or can_download_predictions %}
+    <a href="/runs/{{ run_id }}/predictions">Download patient-level predictions</a>
+    {% endif %}
+  </p>
+  <p class="help">The aggregate report has no patient identifiers. The prediction file is one row per patient and should stay with the source table.</p>
+  {% if can_delete %}
+  <form method="post" action="/runs/{{ run_id }}/delete">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit">Delete this run</button>
+  </form>
+  <p class="help">Deletion removes the uploaded tables and the predictions. The audit line stays.</p>
+  {% endif %}
+{% endblock %}

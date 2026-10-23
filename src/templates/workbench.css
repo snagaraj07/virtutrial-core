@@ -1,0 +1,246 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f7f5f2;
+  --text: #1c1917;
+  --muted: #44403c;
+  --surface: #ffffff;
+  --line: #d6d3d1;
+  --accent: #0f3d5e;
+  --accent-text: #ffffff;
+  --focus: #0f3d5e;
+  --notice-bg: #e8eef3;
+  --notice-text: #1c1917;
+  --stop-bg: #f8e8e6;
+  --stop-text: #6b1d1d;
+  --stop-line: #6b1d1d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1917;
+    --text: #f5f5f4;
+    --muted: #d6d3d1;
+    --surface: #292524;
+    --line: #57534e;
+    --accent: #e7e5e4;
+    --accent-text: #1c1917;
+    --focus: #f5f5f4;
+    --notice-bg: #292524;
+    --notice-text: #f5f5f4;
+    --stop-bg: #3f1d1d;
+    --stop-text: #fecaca;
+    --stop-line: #fecaca;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  transform: translateY(-120%);
+  background: var(--accent);
+  color: var(--accent-text);
+  padding: 0.5rem 0.75rem;
+}
+
+.skip:focus {
+  transform: none;
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.site-header,
+.site-footer,
+main {
+  width: min(46rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  margin: 0;
+  font-weight: 600;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a[aria-current="page"] {
+  font-weight: 600;
+}
+
+main { flex: 1; padding: 2rem 0 3rem; }
+main:focus { outline: none; }
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+h2 {
+  margin: 2rem 0 0.75rem;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+p { margin: 0 0 1rem; }
+
+.lede,
+.help,
+footer,
+dt { color: var(--muted); }
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.button,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.25rem;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.field { margin: 0 0 1.25rem; }
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.help { margin: 0 0 0.5rem; font-size: 0.95rem; }
+
+input[type="file"] {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.facts,
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+}
+
+.facts div,
+.metrics div {
+  margin: 0;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+}
+
+dt { margin: 0; font-size: 0.95rem; }
+dd { margin: 0.15rem 0 0; font-size: 1.35rem; font-weight: 600; color: var(--text); }
+
+.notice {
+  padding: 0.75rem 1rem;
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  border-left: 4px solid var(--accent);
+}
+
+.notice-stop {
+  background: var(--stop-bg);
+  color: var(--stop-text);
+  border-left-color: var(--stop-line);
+}
+
+.rule { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.5rem;
+}
+
+caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th[scope="col"] { font-weight: 600; }
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.site-footer {
+  padding: 1rem 0 2rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 40rem) {
+  .site-header { align-items: flex-start; flex-direction: column; }
+  h1 { font-size: 1.5rem; }
+}

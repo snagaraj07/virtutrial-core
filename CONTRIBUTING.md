@@ -21,6 +21,8 @@ Python 3.9 or newer. The CI workflow runs 3.9 and 3.12.
 | Synthetic trajectories | `src/simulator.py` | `tests/test_simulator.py` |
 | Baseline progression model | `src/forecaster.py` | `tests/test_vca.py` |
 | Treatment comparison | `src/vca_engine.py` | `tests/test_vca.py` |
+| Reviewer diagnostics and run manifest | `src/diagnostics.py` | `tests/test_diagnostics.py` |
+| Hosted identity and audit | `src/auth.py`, `src/audit.py`, `src/studies.py` | `tests/test_auth.py` |
 | Docs, templates, CI | the matching file | the acceptance check in that phase, or `ruff` and `pytest` |
 
 A new progression model should be a scikit-learn regressor passed to `DigitalTwinForecaster(estimator=...)`. It must accept a two-dimensional target, one column per week.

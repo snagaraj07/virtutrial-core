@@ -1,0 +1,5 @@
+patient_id,week,treated,age,baseline_score,engagement_score,gaze_fixation,vocal_variability
+SYN-001,0,0,8,50,50,0.40,1.20
+SYN-001,1,0,8,50,51,0.41,1.21
+SYN-002,0,1,9,60,60,0.45,1.30
+SYN-002,1,1,9,60,62,0.46,1.32

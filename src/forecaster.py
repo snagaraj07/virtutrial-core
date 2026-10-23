@@ -11,20 +11,27 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge, RidgeCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 FEATURES = ("age", "baseline_score", "gaze_fixation", "vocal_variability")
 MIN_CONTROLS = 10
+RIDGE_ALPHAS = (0.1, 1.0, 10.0, 100.0)
 
 
 class DigitalTwinForecaster:
     """Forecast the untreated trajectory from baseline measurements."""
 
-    def __init__(self, alpha: float = 1.0, estimator=None) -> None:
+    def __init__(self, alpha: float = 1.0, estimator=None, tune: bool = True) -> None:
         self.alpha = alpha
-        model = Ridge(alpha=alpha) if estimator is None else estimator
+        self.tune = bool(tune) and estimator is None
+        if estimator is not None:
+            model = estimator
+        elif self.tune:
+            model = RidgeCV(alphas=RIDGE_ALPHAS)
+        else:
+            model = Ridge(alpha=alpha)
         self.pipeline = Pipeline(
             [
                 ("scale", StandardScaler()),
@@ -34,21 +41,34 @@ class DigitalTwinForecaster:
         self._fitted = False
         self.n_patients_ = 0
         self.weeks_: list[int] = []
+        self.alpha_ = float(alpha)
+        self.n_incomplete_dropped_ = 0
 
     def fit(self, frame: pd.DataFrame, controls_only: bool = True) -> "DigitalTwinForecaster":
-        """Fit on complete trajectories. Training defaults to untreated patients."""
+        """Fit on complete trajectories. Training defaults to untreated patients.
+
+        Patients who miss a scheduled week are dropped from training. The
+        analysis still needs at least ``MIN_CONTROLS`` complete untreated paths.
+        """
 
         baseline = _baseline_rows(frame)
         if controls_only:
             baseline = baseline.loc[baseline["treated"] == 0].reset_index(drop=True)
-        if len(baseline) < MIN_CONTROLS:
+        trajectory, weeks, used_ids = _trajectory_matrix(frame, baseline["patient_id"])
+        self.n_incomplete_dropped_ = int(len(baseline) - len(used_ids))
+        if len(used_ids) < MIN_CONTROLS:
             raise ValueError(
                 f"Need at least {MIN_CONTROLS} control patients with complete "
                 "trajectories to fit the digital twin."
             )
-
-        trajectory, weeks = _trajectory_matrix(frame, baseline["patient_id"])
+        baseline = (
+            baseline.set_index("patient_id")
+            .loc[list(used_ids)]
+            .reset_index()
+        )
         self.pipeline.fit(baseline.loc[:, FEATURES], trajectory)
+        model = self.pipeline.named_steps["model"]
+        self.alpha_ = float(getattr(model, "alpha_", self.alpha))
         self._fitted = True
         self.n_patients_ = int(len(baseline))
         self.weeks_ = weeks
@@ -116,7 +136,7 @@ def _baseline_rows(frame: pd.DataFrame) -> pd.DataFrame:
 
 def _trajectory_matrix(
     frame: pd.DataFrame, patient_ids: pd.Series
-) -> tuple[np.ndarray, list[int]]:
+) -> tuple[np.ndarray, list[int], list]:
     wide = frame.pivot_table(
         index="patient_id",
         columns="week",
@@ -125,6 +145,5 @@ def _trajectory_matrix(
     )
     weeks = [int(week) for week in sorted(wide.columns)]
     wide = wide.reindex(index=patient_ids.tolist(), columns=weeks)
-    if wide.isna().any().any():
-        raise ValueError("Every training patient needs an engagement score at every week.")
-    return wide.to_numpy(dtype=float), weeks
+    complete = wide.dropna(how="any")
+    return complete.to_numpy(dtype=float), weeks, complete.index.tolist()
